@@ -1,9 +1,38 @@
-\begin{thebibliography}{TRR16}
+\newcommand{\etalchar}[1]{$^{#1}$}
+\begin{thebibliography}{HDYK04}
 
-\bibitem[TRR16]{taubmann2016cloudphylactor}
-Benjamin Taubmann, Noëlle Rakotondravony, and Hans~P. Reiser.
-\newblock {CloudPhylactor:} harnessing mandatory access control for virtual
-  machine introspection in cloud data centers.
-\newblock In {\em 2016 IEEE Trustcom/BigDataSE/ISPA}, pages 957--964, Aug 2016.
+\bibitem[DS15]{Dogra2015ASO}
+Naveen Dogra and Sarbjeet Singh.
+\newblock A survey of dynamic replication strategies in distributed systems.
+\newblock {\em International Journal of Computer Applications}, 110:1--4, 2015.
+
+\bibitem[HDYK04]{accrual}
+N.~{Hayashibara}, X.~{Defago}, R.~{Yared}, and T.~{Katayama}.
+\newblock The /spl phi/ accrual failure detector.
+\newblock In {\em Proceedings of the 23rd IEEE International Symposium on
+  Reliable Distributed Systems, 2004.}, pages 66--78, 2004.
+
+\bibitem[KLL{\etalchar{+}}97]{consisten-hashing}
+David Karger, Eric Lehman, Tom Leighton, Rina Panigrahy, Matthew Levine, and
+  Daniel Lewin.
+\newblock Consistent hashing and random trees: Distributed caching protocols
+  for relieving hot spots on the world wide web.
+\newblock In {\em Proceedings of the Twenty-Ninth Annual ACM Symposium on
+  Theory of Computing}, STOC ’97, page 654–663, New York, NY, USA, 1997.
+  Association for Computing Machinery.
+
+\bibitem[LM10]{Cassandra}
+Avinash Lakshman and Prashant Malik.
+\newblock Cassandra: A decentralized structured storage system.
+\newblock {\em SIGOPS Oper. Syst. Rev.}, 44(2):35–40, April 2010.
+
+\bibitem[mon]{mongodb}
+Mongodb documentation.
+\newblock \url{https://docs.mongodb.com/manual/replication/}.
+
+\bibitem[Nai18]{consistent-hashing-pic}
+Sujith~Jay Nair.
+\newblock Consitent hashing.
+\newblock \url{https://sujithjay.com/data-systems/dynamo-cassandra/}, 2018.
 
 \end{thebibliography}

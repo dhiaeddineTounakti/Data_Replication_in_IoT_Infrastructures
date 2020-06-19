@@ -1,38 +1,29 @@
-%This document will explain the major features of the document
-%class. For further information, the {\itshape \LaTeX\ User's Guide} is
-%available from
-%\url{https://www.acm.org/publications/proceedings-template}.
 \documentclass[sigconf]{acmart}
-
-\usepackage{lipsum}
+\usepackage{graphicx}
 
 \begin{document}
+
+
 
 \settopmatter{printacmref=false} % Removes citation information below abstract
 \renewcommand\footnotetextcopyrightpermission[1]{} % removes footnote with conference information in first column
 \pagestyle{plain} % removes running headers
 \settopmatter{printfolios=true}
 
+\newcommand{\pref}[1]{[\ref{#1}]}
 
-\title{The Name of the Title is Hope}
-\author{Your Name}
+\title{Design of Data replication model for IOT infrastructure}
+\author{TOUNEKTI Dhiaeddine}
 \affiliation{\institution{University of Passau}}
-\email{your.name@uni-passau.de}
+\email{tounek01@uni-passau.de}
 
 
 
 
 \begin{abstract}
- Here goes your abstract.
-\lipsum[1]
+In this paper we are going to compare different replication systems available and decide which one is the most suitable for an IOT infrastructure of a smart garden.
 \end{abstract}
 
-
-
-%%
-%% Keywords. The author(s) should pick words that accurately describe
-%% the work being presented. Separate the keywords with commas.
-%\keywords{datasets, neural networks, gaze detection, text tagging}
 
 
 
@@ -40,35 +31,75 @@
 \maketitle
 
 \section{Introduction}
-\lipsum
 
+IOT infrastructure relies on distributed systems. A typically IOT infrastructure would consist of device layer, edge layer and a cloud layer. To make these layers resilient to failure a replication technique should be adopted. Many replication techniques where developed, with each one of them conceived to solve specific problem. Some of them were created to handle massive amount of data, order of petabyte, distributed over a large space, intercontinental infrastructure, commonly named data grid ~\cite{Dogra2015ASO} these replication systems were created to insure fast and efficient access to a massive amount of data rather than answer the problem of consistency and availability commonly faced in highly available systems. In this paper we are going to investigate the characteristics of database replication technologies used by most used database systems namely mongodb \pref{sec:mongodb} and Cassandra \pref{sec:cassandra}. We are going to compare the strategies used in the replication methods in order to decide which replication method is the most suited for our use case.  
 
 \section{Background}
-\subsection{Part One}
+\subsection{Use Case}
+We are constructing an IOT infrastructure in a smart garden to automate the irrigation process. The infrastructure consists of three layers:\newline
+\textbf{Device Layer} : consists of sensors that are responsible of capturing the weather data (temperature, humidity,...)
+\newline \textbf{Edge layer} : consists of edge devices that are responsible of doing computational work, partially storing data, providing instant feedback to the user and controlling the device layer.
+\newline \textbf{Cloud layer} : consists of large servers providing some services to other layers like big amount of data storage and high intensive computational tasks that can not be done in an edge device.
+\subsection{Replication types}
+There are two main replication mechanism currently used, Primary - replica and Multi-Primary - replicas. Both of these designs provide Network partitioning tolerance and fault tolerance but depending on the configuration they might provide different consistency and availability levels. They can also with the right configuration provide atomicity of transactions. We will be discussing in the next sections MongoDB as an example of Primary-replica replication model and Cassandra as an example of Multi-Primary replication model.
+\section{Primary-replica : MongoDB}
+\label{sec:mongodb}
+MongoDB\cite{mongodb} is a well known NoSQL document storage database. To make its data highly available and resilient to network Partitioning and server failures it implement master-replicas mechanism
+\subsection{Component}
+The database is composed of replication clusters.\newline Cluster is a set of nodes (servers). Unless a network partition has happened there is only one primary node and the others are replicas.
+\textbf{Primary} is the server that accepts read and write request and it is the responsible of replicating these requests to secondary nodes.
+\newline \textbf{Replicas} are nodes that replicate the primary transactions. They do this asynchronously. They cannot accept write request and forward read requests to the primary whenever they receive one.\footnote{It is to note that the commercial version of MongoDB allow for some degree of flexibility and allow client to issue write and read requests to replicas but this would violate the one-master-replicas design, for this reason it was not considered here}.
+\subsection{Primary election}
+During this process the cluster nodes try to select the primary node. During this time no write process are accepted but read processes can be done if configured to be handled by replicas. In the case where there aren't enough replicas (less than two) for the election process a node called "arbeiter" can be added to the cluster. This node does not replicate data but just contribute to the election process.\newline
+In the case of network partitioning it might happen that the cluster ends up with two primaries, one from the old cluster and another one recently elected after the network partition. To solve this issue the old Primary will downgrade to a replica once he detects that he cannot connect to the majority of nodes.
+\subsection{Failure detection}
+nodes would send to each other heartbeat messages each two seconds if no response comes within 10 seconds the node is considered as unaccessible
+\subsection{CAP and atomicity}
+MongoDB provides tolerance for network partitioning but depending on the read and write conditions it might provide different levels of availability and consistency.
+\newline From now on we are going to consider a system where the majority of nodes exist and less than the half of nodes are faulty.\newline
+If the write request is set to majority, which means that a write request is only acknowledged if the majority of replicas have replicated the write request, MongoDB provide strong Consistency, eventual availability and atomicity of transactions.\newline
+If the write request is set to less than the majority of nodes then MongoDB would provide read-your-write consistency, eventual availability but no atomicity is granted. This is caused by the coexistence of two primaries in the case of network partitioning. In that case the old primary would accept some write request and read requests that would be rolled back after it steps down from being a primary.
+\section{Multi-Primary : Cassandra}
+\label{sec:cassandra}
+Cassandra\cite{Cassandra} is a decentralized Column database. To provide fault tolerance Cassandra uses a Multi-Primary strategy.
+\subsection{Components}
+\label{subsec:components}
+Cassandra consist of a cluster of nodes. All nodes are considered primary nodes. However there are two types of nodes seed nodes and non-seed nodes. As there names might suggest they are used as the cluster creation trigger. In the bootstrapping process they do not have to communicate with any other seed node.
+\subsection{Data replication}
+The server cluster is constituted of multiple Primary nodes. Cassandra uses consistent hashing \cite{consisten-hashing} to assign data to nodes. In consistent hashing the hash space (ring) is divided on the available number of nodes and each node would receive and interval of the hash values. This node, also called coordinator (for data whose hash is in the interval), is in charge of read and write requests of the data whose hash falls in its interval. It is also responsible of replicating the data on the next n servers. It is to be noted that for performance reasons we might assign multiple nodes in a ring to one server in order to balance the load on different machines see the figure \ref{fig:consistenthashing}.
 
-\lipsum[1-2]
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=\linewidth]{consistenthashing.png}
+    \caption{consistent hashing example ~\cite{consistent-hashing-pic}}
+    \label{fig:consistenthashing}
+\end{figure}
+
+\subsection{Membership}
+To detect other nodes, cluster server would exchange gossip messages periodically. this part makes use of two kind of clocks, one logical clock called version and another timestamp called generation. the gossip protocol runs this way :
+\begin{enumerate}
+    \item the node update its local state (version)
+    \item picks another random node to exchange messages with it
+    \item probabilistically try to communicate with any unreachable node
+    \item Gossip with a seed \pref{subsec:components} node if it couldn't reach any other node
+\end{enumerate}
+gossip messages consist of a vector clock (generate, version) and $\phi$-Accrual failure detector \cite{accrual} probability alongside other network information. The nodes do not send a list of "UP" and "DOWN" of peer nodes but rather send probability of how sure a node is, that another node would not respond if a gossip message is sent to it. Then the decision to mark the node "UP" or "DOWN" is made internally. If marked "DOWN" the node will never root requests to that peer node. The $\phi$ value used in the original cassandra paper was set to 5 which allowed to detect a failed node in 15 seconds.
+\subsection{Write Conflicts}
+\subsection{CAP and atomicity}
+\subsection{Bootstrap}
 
 
-\subsection{Part Two}
+\section{Comparison of Different replication systems}
 
-\lipsum[3-4]
 
-\section{Part Three}
-
-\lipsum[5-6]
 
 \section{Related Work}
-
-Taubmann et al. presented the greatest work of all~\cite{taubmann2016cloudphylactor}.
 
 
 
 \section{Conclusion}
 
 \section{Modifications}
-
-
-
 
 
 
