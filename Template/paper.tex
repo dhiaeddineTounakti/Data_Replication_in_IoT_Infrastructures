@@ -32,7 +32,7 @@ In this paper we are going to compare different replication systems available an
 
 \section{Introduction}
 
-IOT infrastructure relies on distributed systems. A typically IOT infrastructure would consist of device layer, edge layer and a cloud layer. To make these layers resilient to failure a replication technique should be adopted. Many replication techniques where developed, with each one of them conceived to solve specific problem. Some of them were created to handle massive amount of data, order of petabyte, distributed over a large space, intercontinental infrastructure, commonly named data grid ~\cite{Dogra2015ASO} these replication systems were created to insure fast and efficient access to a massive amount of data rather than answer the problem of consistency and availability commonly faced in highly available systems. In this paper we are going to investigate the characteristics of database replication technologies used by most used database systems namely mongodb \pref{sec:mongodb} and Cassandra \pref{sec:cassandra}. We are going to compare the strategies used in the replication methods in order to decide which replication method is the most suited for our use case.  
+IOT infrastructure relies on distributed systems. A typically IOT infrastructure would consist of device layer, edge layer and a cloud layer. To make these layers resilient to failure a replication technique should be adopted. Many replication techniques where developed, with each one of them conceived to solve specific problem. Some of them were created to handle massive amount of data, order of petabyte, distributed over a large space, intercontinental infrastructure, commonly named data grid ~\cite{Dogra2015ASO} these replication systems were created to insure fast and efficient access to a massive amount of data rather than answer the problem of consistency and availability commonly faced in highly available systems. In this paper we are going to investigate the characteristics of streaming system replication technology using Kafka \pref{sec:kafka} as an example and database replication technologies used by database systems namely mongodb \pref{sec:mongodb} and Cassandra \pref{sec:cassandra}. We are going to compare the strategies used in the replication methods in order to decide which replication method is the most suited for our use case.  
 
 \section{Background}
 \subsection{Use Case}
@@ -41,8 +41,8 @@ We are constructing an IOT infrastructure in a smart garden to automate the irri
 \newline \textbf{Edge layer} : consists of edge devices that are responsible of doing computational work, partially storing data, providing instant feedback to the user and controlling the device layer.
 \newline \textbf{Cloud layer} : consists of large servers providing some services to other layers like big amount of data storage and high intensive computational tasks that can not be done in an edge device.
 \subsection{Replication types}
-There are two main replication mechanism currently used, Primary - replica and Multi-Primary - replicas. Both of these designs provide Network partitioning tolerance and fault tolerance but depending on the configuration they might provide different consistency and availability levels. They can also with the right configuration provide atomicity of transactions. We will be discussing in the next sections MongoDB as an example of Primary-replica replication model and Cassandra as an example of Multi-Primary replication model.
-\section{Primary-replica : MongoDB}
+There are two main replication mechanism currently used, Primary - replica and Multi-Primary - replicas. Both of these designs provide Network partitioning tolerance and fault tolerance but depending on the configuration they might provide different consistency and availability levels. They can also with the right configuration provide atomicity of transactions. We will be discussing in the next sections MongoDB and Kafka as an example of Primary-replica replication model and Cassandra as an example of Multi-Primary replication model.
+\section{Primary-Replicas : MongoDB}
 \label{sec:mongodb}
 MongoDB\cite{mongodb} is a well known NoSQL document storage database. To make its data highly available and resilient to network Partitioning and server failures it implement master-replicas mechanism
 \subsection{Component}
@@ -54,10 +54,10 @@ During this process the cluster nodes try to select the primary node. During thi
 In the case of network partitioning it might happen that the cluster ends up with two primaries, one from the old cluster and another one recently elected after the network partition. To solve this issue the old Primary will downgrade to a replica once he detects that he cannot connect to the majority of nodes.
 \subsection{Failure detection}
 nodes would send to each other heartbeat messages each two seconds if no response comes within 10 seconds the node is considered as unaccessible
-\subsection{CAP and atomicity}
+\subsection{CAP and ACID}
 MongoDB provides tolerance for network partitioning but depending on the read and write conditions it might provide different levels of availability and consistency.
 \newline From now on we are going to consider a system where the majority of nodes exist and less than the half of nodes are faulty.\newline
-If the write request is set to majority, which means that a write request is only acknowledged if the majority of replicas have replicated the write request, MongoDB provide strong Consistency, eventual availability and atomicity of transactions.\newline
+If the write request is set to majority, which means that a write request is only acknowledged if the majority of replicas have replicated the write request, MongoDB provide strong Consistency, eventual availability and ACID transactions for single document.\newline
 If the write request is set to less than the majority of nodes then MongoDB would provide read-your-write consistency, eventual availability but no atomicity is granted. This is caused by the coexistence of two primaries in the case of network partitioning. In that case the old primary would accept some write request and read requests that would be rolled back after it steps down from being a primary.
 \section{Multi-Primary : Cassandra}
 \label{sec:cassandra}
@@ -76,6 +76,7 @@ The server cluster is constituted of multiple Primary nodes. Cassandra uses cons
 \end{figure}
 
 \subsection{Membership}
+\label{sec:membership}
 To detect other nodes, cluster server would exchange gossip messages periodically. this part makes use of two kind of clocks, one logical clock called version and another timestamp called generation. the gossip protocol runs this way :
 \begin{enumerate}
     \item the node update its local state (version)
@@ -85,8 +86,57 @@ To detect other nodes, cluster server would exchange gossip messages periodicall
 \end{enumerate}
 gossip messages consist of a vector clock (generate, version) and $\phi$-Accrual failure detector \cite{accrual} probability alongside other network information. The nodes do not send a list of "UP" and "DOWN" of peer nodes but rather send probability of how sure a node is, that another node would not respond if a gossip message is sent to it. Then the decision to mark the node "UP" or "DOWN" is made internally. If marked "DOWN" the node will never root requests to that peer node. The $\phi$ value used in the original cassandra paper was set to 5 which allowed to detect a failed node in 15 seconds.
 \subsection{Write Conflicts}
-\subsection{CAP and atomicity}
+Since data is versioned whether using a client clock or a the coordinator clock, Cassandra follows the rule of last write win to solve conflicting data modifications. This means that the data having the latest timestamp would be preserved. To be applied this need the nodes to be synced in time and the system should consider the fact that it is impossible to reach perfect synchronization.
+\subsection{CAP and ACID}
+As we saw in the section \pref{sec:membership} Cassandra's node clocks need to be in perfect synchronization to be able to preserve update order which is impossible to realize. For this reason multi-primary systems are not suitable for ACID transactions.
+\newline Cassandra, using multi-primary approach provide eventual consistency and strong availability. Let R be the number of nodes that need to acknowledge a read request, W the number of nodes that need to acknowledge write requests before responding to the client and f the number of nodes. Cassandra can tolerate t-R faulty nodes when serving reading requests and t-W faulty nodes when receiving write requests.
 \subsection{Bootstrap}
+When a node is created or recover from failure we saw that it should communicate with a seed but when initially created there are no seeds in the cluster because there is no cluster obviously. For this reason when creating a cluster for the first time the user picks up nodes that will be considered as seeds and these seeds do not have to communicate with other seeds to join the cluster.
+
+\section{primary-replicas : Kafka}
+\label{sec:kafka}
+Kafka \cite{Kafka} is a streaming system to process huge volume of logs developed by LinkedIn. It is generally thought of a messaging system but it is capable of much more. As we will se we can rely entirely on apache kafka in our use Case
+\subsection{Data Model}
+Kafka splits data into topics. Each topic is split into partitions. partitions are the replication unit which means that each topic partition should fit in a node \pref{sec:components} storage capacity. each partition consists of multiple records that are ordered using id numbers assigned by the node responsible for the partition.
+\begin{figure}[h!]
+    \includegraphics[width=\linewidth]{topic.jpg}
+    \caption{Topic data design\cite{kafka_documentation}}
+\end{figure}
+\subsection{Components}
+\label{sec:components}
+Apache kafka uses primary-backup architecture to replicate the data. It is composed of clusters where each cluster is itself composed of nodes. nodes are also named sometimes as servers or brokers.
+each node can be weather a primary for certain topic partition or a backup. Multiple partitions can be assigned to a single node.\newline
+\textbf{Primary} is responsible for responding to all read and write requests. It persists these changes inside a log.
+\textbf{Replicas} replicate the primary log in a \textbf{pull-based} manner. Which means that it is not the job of the primary to replicate the data in each replica but rather each replica have to request new data records from the primary.
+\newline There are also \textbf{Consumer} groups which are thought of as broadcast domain. In other words each partition should be sent to each consumer group. In each consumer group only one consumer can subscribe to a given partition, which means that each record appended to the partition log should be sent to one particular consumer within a consumer group.
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=\linewidth]{consumer_group.jpg}
+    \caption{Consumer groups\cite{kafka_documentation}}
+    \label{fig 2}
+\end{figure}
+\textbf{Producers} are those who publish records. They choose which topics partition a certain record should be published in.
+It is to note that these are roles and one node can play all the roles at the same time for different topic partitions. 
+\subsection{Membership}
+\label{sec:membership}
+kafka uses zookeeper server under the hood to persist configuration data. It assigns for each node a static id that will persist even if the node fails and the same id will be assigned to the same the node when it recovers. Add to that zookeeper keeps information about in-sync replicas (ISR) for each topic partition. a node is considered in-sync if:
+\begin{itemize}
+    \item it can keep a session with the zookeeper through heartbeat
+    \item it does not fall far-behind when replicating the primary logs. "far-behind" is defined through the configuration of the kafka cluster.
+\end{itemize}
+
+\subsection{Failover}
+let a replicas set for each data partition have n nodes, one primary and the others are replicas. In this case the replicas set should be able to tolerate up to n-1 failed nodes without loosing any data stored. \newline For write request acknowledgement, kafka uses the number of nodes in the ISR set, if it reaches a preset minimum than the write request is acknowledged to the producer else it will wait until enough nodes are present in the ISR set. \newline In case of Primary node failure, one of the ISR set nodes will get automatically elected to be the new primary this way kafka can tolerate up to n-1 failures given that one of the ISR nodes remains in-sync $(alive)$ rather than $\frac{n-1}{2}$ in the standard quorum based systems. \newline
+After a node recovers from failure it has to resync all its data before it can rejoin the ISR set.
+\newline
+In the case where all nodes fail together two approaches are possible
+\begin{itemize}
+    \item the first node from the last ISR set recovers from failure will get elected.
+    \item the first node that recovers from failure (not essentially part of the latest ISR) will get elected.
+\end{itemize}
+
+\subsection{CAP and ACID}
+kafka can provide ACID transactions depending on its read configuration $(read\_committed, read\_uncommitted)$ to control isolation, message delivery policy $(at\_least\_once, at\_most\_once , only\_once)$ to control atomicity and minimum number of ISR nodes to control Durability and consistency. Choosing a high number of ISR would result in a more durable and consistent data but less available service while lower number would make the service less consistent, less durable and more available. 
 
 
 \section{Comparison of Different replication systems}

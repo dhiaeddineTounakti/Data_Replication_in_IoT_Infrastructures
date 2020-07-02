@@ -6,6 +6,11 @@ Naveen Dogra and Sarbjeet Singh.
 \newblock A survey of dynamic replication strategies in distributed systems.
 \newblock {\em International Journal of Computer Applications}, 110:1--4, 2015.
 
+\bibitem[Fou17]{kafka_documentation}
+Apache~Software Foundation.
+\newblock Kafka documentation.
+\newblock \url{http://kafka.apache.org/intro}, 2017.
+
 \bibitem[HDYK04]{accrual}
 N.~{Hayashibara}, X.~{Defago}, R.~{Yared}, and T.~{Katayama}.
 \newblock The /spl phi/ accrual failure detector.
@@ -20,6 +25,11 @@ David Karger, Eric Lehman, Tom Leighton, Rina Panigrahy, Matthew Levine, and
 \newblock In {\em Proceedings of the Twenty-Ninth Annual ACM Symposium on
   Theory of Computing}, STOC ’97, page 654–663, New York, NY, USA, 1997.
   Association for Computing Machinery.
+
+\bibitem[Kre11]{Kafka}
+Jay Kreps.
+\newblock Kafka : a distributed messaging system for log processing.
+\newblock 2011.
 
 \bibitem[LM10]{Cassandra}
 Avinash Lakshman and Prashant Malik.

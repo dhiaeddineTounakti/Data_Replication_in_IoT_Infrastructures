@@ -197,6 +197,12 @@ INPUT /var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map
 INPUT /home/dhiaeddine/Projects/Data_Replication_in_IoT_Infrastructures/Template/consistenthashing.png
 INPUT /home/dhiaeddine/Projects/Data_Replication_in_IoT_Infrastructures/Template/consistenthashing.png
 INPUT /home/dhiaeddine/Projects/Data_Replication_in_IoT_Infrastructures/Template/consistenthashing.png
+INPUT /home/dhiaeddine/Projects/Data_Replication_in_IoT_Infrastructures/Template/topic.jpg
+INPUT /home/dhiaeddine/Projects/Data_Replication_in_IoT_Infrastructures/Template/topic.jpg
+INPUT /home/dhiaeddine/Projects/Data_Replication_in_IoT_Infrastructures/Template/topic.jpg
+INPUT /home/dhiaeddine/Projects/Data_Replication_in_IoT_Infrastructures/Template/consumer_group.jpg
+INPUT /home/dhiaeddine/Projects/Data_Replication_in_IoT_Infrastructures/Template/consumer_group.jpg
+INPUT /home/dhiaeddine/Projects/Data_Replication_in_IoT_Infrastructures/Template/consumer_group.jpg
 INPUT /home/dhiaeddine/Projects/Data_Replication_in_IoT_Infrastructures/Template/paper.bbl
 INPUT /home/dhiaeddine/Projects/Data_Replication_in_IoT_Infrastructures/Template/paper.bbl
 INPUT /usr/share/texlive/texmf-dist/fonts/tfm/public/cm/cmti7.tfm
@@ -205,6 +211,7 @@ INPUT /home/dhiaeddine/Projects/Data_Replication_in_IoT_Infrastructures/Template
 INPUT /home/dhiaeddine/Projects/Data_Replication_in_IoT_Infrastructures/Template/paper.out
 INPUT /usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10.pfb
 INPUT /usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx9.pfb
+INPUT /usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi6.pfb
 INPUT /usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi9.pfb
 INPUT /usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb
 INPUT /usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr12.pfb
@@ -213,4 +220,6 @@ INPUT /usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr6.pfb
 INPUT /usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr7.pfb
 INPUT /usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr9.pfb
 INPUT /usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmssbx10.pfb
+INPUT /usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy6.pfb
+INPUT /usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy9.pfb
 INPUT /usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmti7.pfb
